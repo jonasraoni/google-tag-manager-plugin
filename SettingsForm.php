@@ -13,11 +13,15 @@
  * @brief Form for journal managers to modify Google Tag Manager plugin settings
  */
 
-namespace PKP\Plugins\Generic\GoogleTagManager;
+namespace APP\plugins\generic\googleTagManager;
 
-import('lib.pkp.classes.form.Form');
+use APP\template\TemplateManager;
+use PKP\form\Form;
+use PKP\form\validation\FormValidator;
+use PKP\form\validation\FormValidatorCSRF;
+use PKP\form\validation\FormValidatorPost;
 
-class SettingsForm extends \Form {
+class SettingsForm extends Form {
 
 	/** @var int */
 	private $_contextId;
@@ -34,9 +38,9 @@ class SettingsForm extends \Form {
 
 		parent::__construct($plugin->getTemplateResource('settingsForm.tpl'));
 
-		$this->addCheck(new \FormValidator($this, 'googleTagManagerId', 'required', 'plugins.generic.googleTagManager.manager.settings.googleTagManagerIdRequired'));
-		$this->addCheck(new \FormValidatorPost($this));
-		$this->addCheck(new \FormValidatorCSRF($this));
+		$this->addCheck(new FormValidator($this, 'googleTagManagerId', 'required', 'plugins.generic.googleTagManager.manager.settings.googleTagManagerIdRequired'));
+		$this->addCheck(new FormValidatorPost($this));
+		$this->addCheck(new FormValidatorCSRF($this));
 	}
 
 	/**
@@ -51,7 +55,7 @@ class SettingsForm extends \Form {
 	 * @copydoc Form::fetch()
 	 */
 	public function fetch($request, $template = null, $display = false) : string {
-		$templateMgr = \TemplateManager::getManager($request);
+		$templateMgr = TemplateManager::getManager($request);
 		$templateMgr->assign('pluginName', $this->_plugin->getName());
 		return parent::fetch($request, $template, $display);
 	}
