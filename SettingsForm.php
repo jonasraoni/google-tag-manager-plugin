@@ -24,22 +24,12 @@ use PKP\form\validation\FormValidatorPost;
 
 class SettingsForm extends Form
 {
-    /** @var int */
-    private $_contextId;
-
-    /** @var GoogleTagManagerPlugin */
-    private $_plugin;
-
     /**
      * Constructor
      */
-    public function __construct(GoogleTagManagerPlugin $plugin, int $contextId)
+    public function __construct(private GoogleTagManagerPlugin $plugin, private int $contextId)
     {
-        $this->_contextId = $contextId;
-        $this->_plugin = $plugin;
-
         parent::__construct($plugin->getTemplateResource('settingsForm.tpl'));
-
         $this->addCheck(new FormValidator($this, 'googleTagManagerId', 'required', 'plugins.generic.googleTagManager.manager.settings.googleTagManagerIdRequired'));
         $this->addCheck(new FormValidatorPost($this));
         $this->addCheck(new FormValidatorCSRF($this));
@@ -50,7 +40,7 @@ class SettingsForm extends Form
      */
     public function execute(...$functionArgs)
     {
-        $this->_plugin->updateSetting($this->_contextId, 'googleTagManagerId', trim($this->getData('googleTagManagerId'), "\"\';"), 'string');
+        $this->plugin->updateSetting($this->contextId, 'googleTagManagerId', trim($this->getData('googleTagManagerId'), "\"\';"), 'string');
         return parent::execute(...$functionArgs);
     }
 
@@ -62,7 +52,7 @@ class SettingsForm extends Form
     public function fetch($request, $template = null, $display = false): string
     {
         $templateMgr = TemplateManager::getManager($request);
-        $templateMgr->assign('pluginName', $this->_plugin->getName());
+        $templateMgr->assign('pluginName', $this->plugin->getName());
         return parent::fetch($request, $template, $display);
     }
 
@@ -71,7 +61,7 @@ class SettingsForm extends Form
      */
     public function initData(): void
     {
-        $this->_data = ['googleTagManagerId' => $this->_plugin->getSetting($this->_contextId, 'googleTagManagerId')];
+        $this->_data = ['googleTagManagerId' => $this->plugin->getSetting($this->contextId, 'googleTagManagerId')];
     }
 
     /**

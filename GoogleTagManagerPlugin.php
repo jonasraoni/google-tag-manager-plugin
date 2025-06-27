@@ -20,6 +20,7 @@ use APP\core\Application;
 use APP\template\TemplateManager;
 use PKP\config\Config;
 use PKP\core\JSONMessage;
+use PKP\core\PKPPageRouter;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\plugins\GenericPlugin;
@@ -34,23 +35,29 @@ class GoogleTagManagerPlugin extends GenericPlugin
      */
     public function register($category, $path, $mainContextId = null): bool
     {
-        $success = parent::register($category, $path, $mainContextId);
-        if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE')) {
+        if (!parent::register($category, $path, $mainContextId)) {
+            return false;
+        }
+
+        if (Application::isUnderMaintenance()) {
             return true;
         }
-        if ($success && $this->getEnabled($mainContextId)) {
-            // Insert Google Tag Manager script
-            Hook::add('TemplateManager::display', function () {
-                $this->_registerScript();
-                return false;
-            });
-            // Insert Google Tag Manager fallback
-            Hook::add('Templates::Common::Footer::PageFooter', function ($hook, $args) {
-                $args[2] = $this->_getFallback();
-                return false;
-            });
+
+        if (!$this->getEnabled($mainContextId)) {
+            return true;
         }
-        return $success;
+
+        // Insert Google Tag Manager script
+        Hook::add('TemplateManager::display', function () {
+            $this->registerScript();
+            return Hook::CONTINUE;
+        });
+        // Insert Google Tag Manager fallback
+        Hook::add('Templates::Common::Footer::PageFooter', function (string $hook, array $args) {
+            $args[2] = $this->getFallbackCode();
+            return Hook::CONTINUE;
+        });
+        return true;
     }
 
     /**
@@ -60,19 +67,19 @@ class GoogleTagManagerPlugin extends GenericPlugin
     {
         $actions = parent::getActions($request, $verb);
         if ($this->getEnabled()) {
-            $router = $request->getRouter();
-            $actions = array_merge([
+            array_unshift(
+                $actions,
                 new LinkAction(
                     'settings',
                     new AjaxModal(
-                        $router->url($request, null, null, 'manage', null, ['verb' => 'settings', 'plugin' => $this->getName(), 'category' => 'generic']),
+                        $request->getRouter()->url(request: $request, op: 'manage', params: ['verb' => 'settings', 'plugin' => $this->getName(), 'category' => 'generic']),
                         $this->getDisplayName()
                     ),
-                    __('manager.plugins.settings'),
-                    null
-                ),
-            ], $actions);
+                    __('manager.plugins.settings')
+                )
+            );
         }
+
         return $actions;
     }
 
@@ -88,9 +95,7 @@ class GoogleTagManagerPlugin extends GenericPlugin
         $context = $request->getContext();
         $templateMgr = TemplateManager::getManager($request);
         $templateMgr->registerPlugin('function', 'plugin_url', [$this, 'smartyPluginUrl']);
-
         $form = new SettingsForm($this, $context->getId());
-
         if ($request->getUserVar('save')) {
             $form->readInputData();
             if ($form->validate()) {
@@ -100,16 +105,17 @@ class GoogleTagManagerPlugin extends GenericPlugin
         } else {
             $form->initData();
         }
+
         return new JSONMessage(true, $form->fetch($request));
     }
 
     /**
      * Register the Google Tag Manager script tag
      */
-    public function _registerScript(): void
+    public function registerScript(): void
     {
         $request = Application::get()->getRequest();
-        if (!$googleTagManagerId = $this->_getGoogleTagManagerId()) {
+        if (!$googleTagManagerId = $this->getGoogleTagManagerId()) {
             return;
         }
 
@@ -118,15 +124,16 @@ class GoogleTagManagerPlugin extends GenericPlugin
         $templateMgr->addHeader('googletagmanager', $googleTagManagerCode);
     }
 
-    private function _getFallback(): ?string
+    private function getFallbackCode(): ?string
     {
-        if (!$googleTagManagerId = $this->_getGoogleTagManagerId()) {
+        if (!$googleTagManagerId = $this->getGoogleTagManagerId()) {
             return null;
         }
+
         return '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=' . htmlspecialchars($googleTagManagerId) . '" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>';
     }
 
-    private function _getGoogleTagManagerId(): ?string
+    private function getGoogleTagManagerId(): ?string
     {
         $request = Application::get()->getRequest();
         $router = $request->getRouter();
@@ -134,6 +141,7 @@ class GoogleTagManagerPlugin extends GenericPlugin
         if (!$context || !($router instanceof PKPPageRouter)) {
             return null;
         }
+
         return $this->getSetting($context->getId(), 'googleTagManagerId') ?: null;
     }
 
