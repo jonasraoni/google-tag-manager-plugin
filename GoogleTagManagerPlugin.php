@@ -18,7 +18,6 @@ namespace APP\plugins\generic\googleTagManager;
 
 use APP\core\Application;
 use APP\template\TemplateManager;
-use PKP\config\Config;
 use PKP\core\JSONMessage;
 use PKP\core\PKPPageRouter;
 use PKP\linkAction\LinkAction;

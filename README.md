@@ -1,7 +1,7 @@
 # Google Tag Manager Plugin
 
 ## Installation
-This plugin is compatible with OJS/OMP/OPS 3.4.
+This plugin is compatible with OJS/OMP/OPS 3.5.
 
 1. Download the right package for your application from the releases: https://github.com/jonasraoni/google-tag-manager-plugin/releases
 2. Access Settings > Website > Plugins
