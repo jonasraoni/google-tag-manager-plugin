@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/googleTagManager/GoogleTagManagerPlugin.inc.php
+ * @file GoogleTagManagerPlugin.php
  *
  * Copyright (c) 2021 Simon Fraser University
  * Copyright (c) 2021 John Willinsky

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/googleTagManager/SettingsForm.inc.php
+ * @file SettingsForm.php
  *
  * Copyright (c) 2021 Simon Fraser University
  * Copyright (c) 2021 John Willinsky

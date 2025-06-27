@@ -1,5 +1,5 @@
 {**
- * plugins/generic/googleTagManager/settingsForm.tpl
+ * settingsForm.tpl
  *
  * Copyright (c) 2021 Simon Fraser University
  * Copyright (c) 2021 John Willinsky
